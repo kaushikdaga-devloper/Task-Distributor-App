@@ -68,9 +68,7 @@ Task-Distributor-App/
 git clone https://github.com/yourusername/Task-Distributor-App.git
 cd Task-Distributor-App
 2. Backend Setup
-bash
-Copy
-Edit
+
 cd backend
 npm install
 Create a .env file in the backend/ directory based on .env.example. Example content:
@@ -83,16 +81,11 @@ MONGO_URI=your_mongodb_atlas_url
 JWT_SECRET=your_jwt_secret
 Start the backend server:
 
-bash
-Copy
-Edit
+
 npm start
 3. Frontend Setup
 In a new terminal window:
 
-bash
-Copy
-Edit
 cd frontend
 npm install
 npm run dev
