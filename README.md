@@ -1,4 +1,4 @@
-# Task Distributor App - MERN Stack Assessment
+# Task Distributor App - MERN Stack Assignment 
 
 ## Demo Video
 
@@ -57,9 +57,6 @@ Task-Distributor-App/
 │ └── vite.config.js
 └── README.md
 
-yaml
-Copy
-Edit
 
 ---
 
@@ -119,6 +116,4 @@ Only .csv, .xls, or .xlsx files are accepted
 
 Extra tasks (if not divisible by 5) are assigned in order among agents
 
-yaml
-Copy
-Edit
+
