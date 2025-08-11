@@ -1,9 +1,12 @@
 // routes/auth.js
 const express = require('express');
 const router = express.Router();
-const { loginAdmin } = require('../controllers/authController'); // Import the controller function
+const { loginAdmin, registerAdmin } = require('../controllers/authController'); // Import both controller functions
 
-// This route now correctly points to your controller
+// POST /api/auth/register - for admin registration
+router.post('/register', registerAdmin);
+
+// POST /api/auth/login - for admin login
 router.post('/login', loginAdmin);
 
 module.exports = router;

@@ -4,39 +4,30 @@ const {
   uploadTasks,
   getAllTasks,
   deleteTask, 
+  createTask,
+  getAllUploadedFiles,
 } = require('../controllers/taskController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Allowed MIME types for CSV, XLS, XLSX
-const allowedMimeTypes = [
-  'text/csv',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-];
-
-// Multer configuration with file filter
+// Multer configuration for file uploads
 const storage = multer.memoryStorage();
-const fileFilter = (req, file, cb) => {
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error('Invalid file type. Only CSV, XLS, and XLSX files are allowed.'),
-      false
-    );
-  }
-};
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage });
 
-// POST /upload - upload a file (protected)
+// POST /api/tasks/upload - upload a file (protected)
 router.post('/upload', authMiddleware, upload.single('csvfile'), uploadTasks);
 
-// GET / - get all tasks (protected)
+// POST /api/tasks/create - create a single task (protected)
+router.post('/create', authMiddleware, createTask);
+
+// GET /api/tasks - get all tasks (protected)
 router.get('/', authMiddleware, getAllTasks);
 
-// DELETE /:id - delete a specific task (protected)
+// GET /api/tasks/files - get all uploaded file records (protected)
+router.get('/files', authMiddleware, getAllUploadedFiles);
+
+// DELETE /api/tasks/:id - delete a specific task (protected)
 router.delete('/:id', authMiddleware, deleteTask);
 
 module.exports = router;

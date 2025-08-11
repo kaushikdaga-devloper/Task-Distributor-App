@@ -1,54 +1,91 @@
-import { useForm } from 'react-hook-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axiosInstance from '../../api/axiosInstance.jsx'
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '../../api/axiosInstance';
+import '../../index.css';
 
-const uploadFile = async (formData) => {
-  const { data } = await axiosInstance.post('/tasks/upload', formData)
-  return data
-}
+// The function that sends the file to the backend
+const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append('csvfile', file); // 'csvfile' must match the name in your backend multer setup
+
+  const { data } = await axiosInstance.post('/tasks/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return data;
+};
 
 const FileUpload = () => {
-  const queryClient = useQueryClient()
-  const { register, handleSubmit, reset } = useForm()
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState('');
+  const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: uploadFile,
     onSuccess: () => {
-      // Invalidate both tasks and agents to refresh the dashboard
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-      queryClient.invalidateQueries({ queryKey: ['agents'] })
-      alert('File uploaded and tasks distributed!')
-      reset()
+      alert('File uploaded and tasks distributed successfully!');
+      // This will refetch the tasks and update the display
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['agentsAndTasks'] });
+      setSelectedFile(null); // Clear the file input
+      setError('');
     },
-    onError: (error) => {
-      alert(`Error: ${error.response?.data?.error || 'Could not upload file.'}`)
+    onError: (err) => {
+      setError(err.response?.data?.message || 'An error occurred during file upload.');
     },
-  })
+  });
 
-  const onSubmit = (data) => {
-    if (!data.taskFile || data.taskFile.length === 0) {
-      return alert('Please select a file.')
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Basic client-side validation for immediate feedback
+      const allowedTypes = [
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+      if (allowedTypes.includes(file.type)) {
+        setSelectedFile(file);
+        setError('');
+      } else {
+        setSelectedFile(null);
+        setError('Invalid file type. Please select a CSV, XLS, or XLSX file.');
+      }
     }
-    const formData = new FormData()
-    formData.append('csvfile', data.taskFile[0])
-    mutation.mutate(formData)
-  }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!selectedFile) {
+      setError('Please select a file to upload.');
+      return;
+    }
+    mutation.mutate(selectedFile);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="form-control">
-        <label>Upload a .csv, .xls, or .xlsx file</label>
+    <form onSubmit={handleSubmit} className="upload-form">
+      <div className="form-group">
+        <label htmlFor="file-upload" className="file-upload-label">
+          {selectedFile ? selectedFile.name : 'Choose a file...'}
+        </label>
         <input
+          id="file-upload"
           type="file"
-          accept=".csv, .xls, .xlsx"
-          {...register('taskFile', { required: true })}
+          onChange={handleFileChange}
+          // This helps the user by only showing allowed file types in the file dialog
+          accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
         />
       </div>
-      <button type="submit" style={{ marginTop: '1rem' }} disabled={mutation.isPending}>
+      
+      <button type="submit" className="upload-button" disabled={mutation.isPending}>
         {mutation.isPending ? 'Uploading...' : 'Upload and Distribute'}
       </button>
-    </form>
-  )
-}
 
-export default FileUpload
+      {error && <p className="error-message" style={{ marginTop: '1rem' }}>{error}</p>}
+    </form>
+  );
+};
+
+export default FileUpload;

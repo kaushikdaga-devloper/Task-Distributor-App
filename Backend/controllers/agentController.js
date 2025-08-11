@@ -48,3 +48,22 @@ exports.getAllAgents = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+// @desc    Get a single agent by ID
+// @route   GET /api/agents/:id
+exports.getAgentById = async (req, res) => {
+  try {
+    const agent = await Agent.findById(req.params.id).select('-password');
+    if (!agent) {
+      return res.status(404).json({ msg: 'Agent not found' });
+    }
+    res.json(agent);
+  } catch (err) {
+    console.error(err.message);
+    // If the ID format is invalid, also return a 404
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Agent not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+};
